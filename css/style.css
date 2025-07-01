@@ -1,0 +1,490 @@
+/* =========================================================
+   VARIABLES CSS GLOBALES
+   Aquí se definen los colores y valores reusables para una
+   fácil personalización y consistencia de la marca.
+   ========================================================= */
+:root {
+    /* Paleta de Colores Principal */
+    --color-primary-red: #E53935;   /* Rojo vibrante para acciones y highlights */
+    --color-dark-blue: #1A237E;     /* Azul oscuro profundo para branding, navbar */
+    --color-black: #212121;         /* Negro suave para texto principal y fondos oscuros */
+    --color-white: #FFFFFF;         /* Blanco puro para fondos claros y texto en oscuro */
+
+    /* Colores Secundarios/Utilidad */
+    --color-light-gray: #f0f2f5;    /* Un gris muy claro para fondos de página o secciones */
+    --color-medium-gray: #adb5bd;   /* Gris medio para texto secundario, bordes, líneas */
+    --color-success: #28a745;       /* Verde para mensajes de éxito */
+    --color-info: #17a2b8;          /* Cian para información */
+    --color-warning: #ffc107;       /* Amarillo para advertencias */
+    --color-danger: #dc3545;        /* Rojo para errores/peligro */
+
+    /* Propiedades de Diseño Reutilizables */
+    --border-radius-base: 0.5rem;   /* Radio de borde estándar */
+    --border-radius-lg: 0.75rem;    /* Radio de borde más grande para tarjetas */
+    --transition-speed-fast: 0.2s;  /* Velocidad de transición rápida */
+    --transition-speed-normal: 0.3s;/* Velocidad de transición normal */
+    --box-shadow-subtle: 0 4px 8px rgba(0, 0, 0, 0.08); /* Sombra sutil para elementos */
+}
+
+/* =========================================================
+   ESTILOS GENERALES (BODY, TIPOGRAFÍA, ENLACES)
+   Estilos base aplicados a toda la página.
+   ========================================================= */
+body {
+    font-family: 'Arial', sans-serif; /* Considera 'Roboto', 'Montserrat' de Google Fonts para un toque más moderno */
+    background-color: var(--color-light-gray); /* Fondo general de la aplicación */
+    color: var(--color-black); /* Color de texto principal */
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: var(--color-dark-blue); /* Enlaces con el color azul oscuro */
+    text-decoration: none;
+    transition: color var(--transition-speed-normal);
+}
+
+a:hover {
+    color: var(--color-primary-red); /* Rojo al pasar el ratón */
+    text-decoration: underline;
+}
+
+/* =========================================================
+   NAVBAR (Barra de Navegación)
+   ========================================================= */
+.navbar {
+    background-color: var(--color-dark-blue) !important; /* Fondo azul oscuro */
+    box-shadow: var(--box-shadow-subtle); /* Sombra para elevar la navbar */
+}
+
+.navbar-brand {
+    color: var(--color-white) !important; /* Texto blanco para la marca */
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-brand:hover {
+    color: var(--color-primary-red) !important; /* Rojo al pasar el ratón */
+}
+
+.nav-link {
+    color: var(--color-white) !important; /* Enlaces blancos en la navbar */
+    transition: color var(--transition-speed-normal);
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--color-primary-red) !important; /* Rojo al pasar el ratón o activo */
+}
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+.btn-primary {
+    background-color: var(--color-primary-red);
+    border-color: var(--color-primary-red);
+    color: var(--color-white);
+    border-radius: var(--border-radius-base);
+    transition: background-color var(--transition-speed-normal), border-color var(--transition-speed-normal), transform var(--transition-speed-normal), box-shadow var(--transition-speed-normal);
+}
+
+.btn-primary:hover {
+    background-color: #C62828; /* Tono de rojo ligeramente más oscuro */
+    border-color: #C62828;
+    transform: translateY(-2px); /* Pequeño efecto de elevación */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Botones de contorno */
+.btn-outline-primary {
+    color: var(--color-primary-red);
+    border-color: var(--color-primary-red);
+    background-color: transparent;
+    border-radius: var(--border-radius-base);
+    transition: all var(--transition-speed-normal);
+}
+.btn-outline-primary:hover {
+    background-color: var(--color-primary-red);
+    color: var(--color-white);
+    border-color: var(--color-primary-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Otros botones de Bootstrap (personalizar si es necesario) */
+.btn-secondary {
+    background-color: var(--color-medium-gray);
+    border-color: var(--color-medium-gray);
+    color: var(--color-white);
+    border-radius: var(--border-radius-base);
+    transition: all var(--transition-speed-normal);
+}
+.btn-secondary:hover {
+    background-color: #6c757d; /* Un tono más oscuro de gris */
+    border-color: #6c757d;
+}
+
+
+/* =========================================================
+   FORMULARIOS
+   ========================================================= */
+.form-control {
+    border-radius: var(--border-radius-base);
+    border: 1px solid var(--color-medium-gray); /* Borde gris suave */
+    padding: 0.5rem 0.75rem;
+    transition: border-color var(--transition-speed-normal), box-shadow var(--transition-speed-normal);
+}
+
+.form-control:focus {
+    border-color: var(--color-dark-blue); /* Borde azul oscuro al enfocar */
+    box-shadow: 0 0 0 0.25rem rgba(26, 35, 126, 0.25); /* Sombra de enfoque con el azul oscuro */
+    outline: none; /* Eliminar outline por defecto del navegador */
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--color-black);
+}
+
+/* =========================================================
+   TARJETAS (CARDS)
+   ========================================================= */
+.card {
+    border-radius: var(--border-radius-lg); /* Bordes más redondeados */
+    border: none; /* Eliminar borde por defecto */
+    box-shadow: var(--box-shadow-subtle); /* Sombra sutil para profundidad */
+    background-color: var(--color-white); /* Fondo blanco */
+}
+
+.card-title {
+    color: var(--color-dark-blue); /* Títulos de tarjeta en azul oscuro */
+    font-weight: bold;
+}
+
+.card-text {
+    color: var(--color-black); /* Texto normal de tarjeta */
+}
+
+/* =========================================================
+   MENSAJES DE ALERTA (Bootstrap Alerts)
+   ========================================================= */
+.alert {
+    border-radius: var(--border-radius-base);
+    font-weight: 500;
+}
+.alert-success {
+    background-color: var(--color-success);
+    color: var(--color-white);
+    border-color: var(--color-success);
+}
+.alert-info {
+    background-color: var(--color-info);
+    color: var(--color-white);
+    border-color: var(--color-info);
+}
+.alert-warning {
+    background-color: var(--color-warning);
+    color: var(--color-black); /* Texto negro para mejor contraste con amarillo */
+    border-color: var(--color-warning);
+}
+.alert-danger {
+    background-color: var(--color-danger);
+    color: var(--color-white);
+    border-color: var(--color-danger);
+}
+
+/* =========================================================
+   ESTILOS DE PERFIL (Imágenes de perfil)
+   ========================================================= */
+.profile-pic-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--color-white);
+    box-shadow: var(--box-shadow-subtle);
+}
+
+.profile-pic-medium {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.post-profile-pic {
+   width: 40px; /* Tamaño más pequeño */
+   height: 40px; /* Tamaño más pequeño */
+   border-radius: 50%;
+   object-fit: cover;
+   margin-right: 10px; /* Espacio a la derecha */
+   border: 1px solid var(--color-medium-gray); /* Borde sutil */
+}
+
+.profile-pic-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* =========================================================
+   SECCIÓN HERO (para index.php)
+   ========================================================= */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../img/voleyball-hero.jpg') no-repeat center center/cover;
+    color: var(--color-white);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+.hero-content h1 {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+.hero-content p {
+    font-size: 1.7rem;
+    margin-bottom: 50px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.hero-buttons .btn {
+    font-size: 1.2rem;
+    padding: 12px 30px;
+    border-radius: 50px;
+    margin: 0 10px;
+    transition: all var(--transition-speed-normal);
+}
+.hero-buttons .btn-primary {
+    background-color: var(--color-primary-red);
+    border-color: var(--color-primary-red);
+}
+.hero-buttons .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+.hero-buttons .btn-outline-light {
+    color: var(--color-white);
+    border-color: var(--color-white);
+    background-color: transparent;
+}
+.hero-buttons .btn-outline-light:hover {
+    background-color: var(--color-white);
+    color: var(--color-black);
+    border-color: var(--color-white);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================================
+   CONTENIDO PRINCIPAL (MAIN CONTENT)
+   Estilos para el contenedor principal de la mayoría de páginas.
+   ========================================================= */
+.main-content-area {
+    padding: 30px 0;
+}
+
+/* =========================================================
+   PUBLICACIONES (POSTS) - Dashboard
+   ========================================================= */
+.post-card {
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 25px;
+    box-shadow: var(--box-shadow-subtle);
+    background-color: var(--color-white);
+}
+
+.profile-pic-post {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    border: 1px solid var(--color-medium-gray);
+}
+
+.post-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius-base);
+    margin-top: 15px;
+    display: block; /* Asegura que la imagen no tenga espacio extra abajo */
+}
+
+.post-video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-top: 15px;
+    border-radius: var(--border-radius-base);
+    overflow: hidden; /* Asegura que el video no se salga de los bordes redondeados */
+}
+
+.post-card hr {
+    border-top: 1px solid rgba(0, 0, 0, 0.08); /* Línea divisoria más suave */
+    margin: 20px 0;
+}
+
+.like-btn, .comment-toggle-btn {
+    color: var(--color-medium-gray);
+    transition: color var(--transition-speed-fast);
+}
+
+.like-btn:hover {
+    color: var(--color-primary-red);
+}
+.like-btn .fas.fa-heart { /* Estilo para el corazón cuando ya hay like */
+    color: var(--color-primary-red);
+}
+
+/* =========================================================
+   SECCIÓN DE COMENTARIOS
+   ========================================================= */
+.comment-section {
+    border-top: 1px solid var(--color-light-gray);
+    padding-top: 15px;
+    margin-top: 15px;
+}
+.comment-list {
+    max-height: 200px; /* Altura máxima para la lista de comentarios */
+    overflow-y: auto; /* Scroll si hay muchos comentarios */
+    margin-bottom: 15px;
+    padding-right: 10px; /* Para evitar que la barra de scroll se superponga */
+}
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    padding: 5px 0;
+    border-bottom: 1px dotted var(--color-light-gray); /* Ligeras líneas para separar comentarios */
+}
+.comment-item:last-child {
+    border-bottom: none;
+}
+.comment-item .profile-pic-sm {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    flex-shrink: 0; /* Evita que la imagen se encoja */
+}
+.comment-content {
+    flex-grow: 1;
+}
+.comment-content span.username {
+    font-weight: bold;
+    color: var(--color-dark-blue); /* Nombre de usuario en azul oscuro */
+    margin-right: 5px;
+}
+.comment-content .text-muted { /* Fecha/hora del comentario */
+    font-size: 0.8em;
+    color: var(--color-medium-gray) !important;
+}
+.comment-text {
+    font-size: 0.95em;
+    color: var(--color-black);
+    word-wrap: break-word;
+    margin-top: 2px;
+}
+.comment-form {
+    margin-top: 15px;
+}
+.no-comments {
+    padding: 15px;
+    background-color: var(--color-light-gray); /* Fondo gris claro para "No comentarios" */
+    border-radius: var(--border-radius-base);
+    color: var(--color-medium-gray) !important;
+    text-align: center;
+}
+
+/* =========================================================
+   BADGE DE CLUB (en las publicaciones)
+   ========================================================= */
+.club-badge {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.75rem; /* Píldora */
+    background-color: var(--color-dark-blue); /* Color por defecto */
+    color: var(--color-white);
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* =========================================================
+   EVENTOS (en el sidebar del dashboard y página de eventos)
+   ========================================================= */
+.event-item {
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--color-medium-gray); /* Línea discontinua */
+    display: flex;
+    align-items: flex-start;
+}
+.event-item:last-child {
+    border-bottom: none;
+}
+.profile-pic-event-club {
+    width: 45px; /* Un poco más grande para el evento */
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    border: 1px solid var(--color-medium-gray);
+    flex-shrink: 0;
+}
+.event-item h6 {
+    color: var(--color-dark-blue); /* Título del evento en azul oscuro */
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.event-item small {
+    color: var(--color-medium-gray) !important; /* Texto de detalles en gris medio */
+}
+.event-item .btn {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    border-radius: 20px; /* Botones más redondeados para los eventos */
+}
+
+/* Estilos para la página de eventos principal (eventos.php) */
+.event-grid-item .card {
+    height: 100%; /* Asegura que todas las tarjetas tengan la misma altura en la cuadrícula */
+    display: flex;
+    flex-direction: column;
+}
+.event-grid-item .card-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.event-grid-item .card-body p {
+    flex-grow: 1; /* Permite que el párrafo de descripción crezca */
+}
+.event-grid-item .card-footer {
+    background-color: transparent;
+    border-top: none;
+    padding-top: 0;
+}
+
+
+/* =========================================================
+   ESTILOS ESPECÍFICOS DE BOOTSTRAP SOBREESCRITOS
+   Ajustes finos a componentes de Bootstrap.
+   ========================================================= */
+/* Ajuste para el contenedor principal de Bootstrap */
+.container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/* Puedes añadir media queries aquí para diseño responsive */
+/* @media (max-width: 768px) { ... } */
