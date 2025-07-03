@@ -36,12 +36,16 @@ if (isset($_POST['submit_publicacion'])) {
 
     // Manejo de la subida de imagen
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
-        $nombre_archivo = uniqid() . '_' . basename($_FILES['imagen']['name']);
-        $ruta_destino = 'uploads/publicaciones/' . $nombre_archivo;
+        $directorio_destino_img = 'img/publicaciones/';
+        if (!is_dir($directorio_destino_img)) {
+            mkdir($directorio_destino_img, 0777, true); // Asegurar que el directorio exista
+        }
+        $nombre_archivo = uniqid('post_img_') . '_' . basename($_FILES['imagen']['name']);
+        $ruta_destino = $directorio_destino_img . $nombre_archivo;
         if (move_uploaded_file($_FILES['imagen']['tmp_name'], $ruta_destino)) {
             $url_imagen = $ruta_destino;
         } else {
-            $mensaje_feedback = "Error al subir la imagen.";
+            $mensaje_feedback = "Error al subir la imagen. Verifique los permisos de la carpeta 'img/publicaciones/'.";
             $tipo_mensaje = "danger";
         }
     }
@@ -64,12 +68,13 @@ if (isset($_POST['submit_publicacion'])) {
     }
 }
 
-
 // --- Lógica para ELIMINAR una publicación (solo el autor) ---
-if (isset($_GET['delete_post']) && $tipo_usuario_logueado === 'club') { // Asumo que solo los clubes pueden eliminar publicaciones
+// Condición eliminada: && $tipo_usuario_logueado === 'club' para permitir a cualquier autor borrar sus posts.
+// La verificación de autoría se hace más abajo.
+if (isset($_GET['delete_post'])) {
     $id_publicacion_a_eliminar = intval($_GET['delete_post']);
 
-    // Primero, verificar si la publicación pertenece al usuario logueado (o club del usuario logueado)
+    // Primero, verificar si la publicación pertenece al usuario logueado
     $stmt_check_owner = $conn->prepare("SELECT id_usuario FROM publicaciones WHERE id_publicacion = ?");
     $stmt_check_owner->bind_param("i", $id_publicacion_a_eliminar);
     $stmt_check_owner->execute();
@@ -267,7 +272,7 @@ if ($resultado_eventos->num_rows > 0) {
                             <p class="text-center text-muted">
                                 <?php echo $mensaje_eventos ?? "No hay eventos próximos registrados. ¡Sé el primero en crear uno!"; ?>
                                 <?php if ($tipo_usuario_logueado === 'club'): ?>
-                                    <br><a href="crear_evento.php" class="btn btn-primary btn-sm mt-2"><i class="fas fa-plus-circle me-1"></i>Crear Evento</a>
+                                    <br><a href="eventos.php" class="btn btn-primary btn-sm mt-2"><i class="fas fa-plus-circle me-1"></i>Crear Evento</a> <!-- Corregido a eventos.php -->
                                 <?php endif; ?>
                             </p>
                         <?php endif; ?>
@@ -421,7 +426,7 @@ if ($resultado_eventos->num_rows > 0) {
                 e.preventDefault(); // Evitar el envío normal del formulario
 
                 const postId = this.dataset.postId;
-                const textarea = this.querySelector('textareaInput');
+                const textarea = this.elements.contenido; // Corrección del selector
                 const commentContent = textarea.value.trim();
                 const commentListContainer = document.getElementById(`comment-list-${postId}`);
                 const commentCountSpan = document.querySelector(`#comments-${postId} .comment-count`);
@@ -431,7 +436,7 @@ if ($resultado_eventos->num_rows > 0) {
                     return;
                 }
 
-                fetch('add_comment.php', { // Asegúrate de que add_comment.php esté correctamente configurado
+                fetch('comment_post.php', { // Corregido a comment_post.php
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',

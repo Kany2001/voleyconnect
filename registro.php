@@ -36,7 +36,8 @@ if (isset($_POST['register'])) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             // Insertar el nuevo usuario
-            $stmt_insert = $conn->prepare("INSERT INTO usuarios (nombre_usuario, email, password_hash, tipo_usuario) VALUES (?, ?, ?, ?)");
+            // Corregido: password_hash a contrasena para coincidir con el esquema de la BD
+            $stmt_insert = $conn->prepare("INSERT INTO usuarios (nombre_usuario, email, contrasena, tipo_usuario) VALUES (?, ?, ?, ?)");
             $stmt_insert->bind_param("ssss", $nombre_usuario, $email, $hashed_password, $tipo_usuario);
 
             if ($stmt_insert->execute()) {

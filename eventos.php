@@ -91,16 +91,19 @@ if (isset($_POST['submit_evento']) && $tipo_usuario_logueado === 'club') {
 
             // Si no hay errores previos, insertar el evento
             if (empty($mensaje_feedback)) {
-                $stmt_insert_event = $conn->prepare("INSERT INTO eventos (id_club, nombre_evento, descripcion, fecha_hora_inicio, fecha_hora_fin, ubicacion, tipo_evento, url_imagen_evento) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt_insert_event->bind_param("isssssss",
+                // Añadido publicado_por (id_usuario del club) y fecha_hora (usando fecha_hora_inicio)
+                $stmt_insert_event = $conn->prepare("INSERT INTO eventos (id_club, nombre_evento, descripcion, fecha_hora_inicio, fecha_hora_fin, ubicacion, tipo_evento, url_imagen_evento, publicado_por, fecha_hora) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt_insert_event->bind_param("isssssssis",
                     $id_club_creador,
                     $nombre_evento,
                     $descripcion,
-                    $fecha_hora_inicio,
+                    $fecha_hora_inicio, // Usado para fecha_hora_inicio
                     $fecha_hora_fin,
                     $ubicacion,
                     $tipo_evento,
-                    $url_imagen_evento
+                    $url_imagen_evento,
+                    $id_usuario_logueado, // publicado_por es el id_usuario del club
+                    $fecha_hora_inicio  // fecha_hora toma el valor de fecha_hora_inicio
                 );
 
                 if ($stmt_insert_event->execute()) {
@@ -169,45 +172,7 @@ $conn->close();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="dashboard.php">VoleyConnect</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="perfil.php">Perfil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="clubes.php">Clubes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="eventos.php">Eventos</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="mensajes.php">Mensajes</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <?php echo htmlspecialchars($nombre_usuario_logueado); ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="perfil.php">Ver Perfil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="logout.php">Cerrar Sesión</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <?php include 'navbar.php'; // Incluir la barra de navegación estándar ?>
 
     <div class="container mt-5 pt-4">
         <div class="row justify-content-center">

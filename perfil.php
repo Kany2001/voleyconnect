@@ -1,7 +1,12 @@
 <?php
 session_start();
 include 'conexion.php'; // Incluye la conexión a la base de datos
-include 'auth_check.php'; // Incluye la verificación de autenticación
+
+// Verificar si el usuario está autenticado
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: login.php?redirect_url=" . urlencode($_SERVER['REQUEST_URI']));
+    exit();
+}
 
 $id_usuario_logueado = $_SESSION['id_usuario'];
 $tipo_usuario_logueado = $_SESSION['tipo_usuario'];
@@ -32,12 +37,23 @@ if ($tipo_perfil == 'usuario_normal') {
         $perfil_data = $resultado->fetch_assoc();
         
         // Obtener publicaciones de este usuario
-        $stmt_publicaciones = $conn->prepare("SELECT * FROM publicaciones WHERE id_usuario = ? ORDER BY fecha_publicacion DESC");
-        $stmt_publicaciones->bind_param("i", $id_perfil);
+        $query_pub_perfil = "
+            SELECT p.*, u_pub.nombre_usuario AS autor_nombre_publicacion, u_pub.foto_perfil_url AS autor_foto_publicacion,
+                   (SELECT COUNT(*) FROM likes l WHERE l.id_publicacion = p.id_publicacion) AS total_likes,
+                   (SELECT COUNT(*) FROM comentarios com WHERE com.id_publicacion = p.id_publicacion) AS total_comentarios,
+                   EXISTS(SELECT 1 FROM likes l WHERE l.id_publicacion = p.id_publicacion AND l.id_usuario = ?) AS usuario_dio_like
+            FROM publicaciones p
+            JOIN usuarios u_pub ON p.id_usuario = u_pub.id_usuario
+            WHERE p.id_usuario = ? ORDER BY p.fecha_publicacion DESC";
+        $stmt_publicaciones = $conn->prepare($query_pub_perfil);
+        // Necesitamos pasar $id_usuario_logueado para 'usuario_dio_like' y $id_perfil para p.id_usuario
+        $stmt_publicaciones->bind_param("ii", $id_usuario_logueado, $id_perfil);
         $stmt_publicaciones->execute();
         $resultado_publicaciones = $stmt_publicaciones->get_result();
-        while ($fila = $resultado_publicaciones->fetch_assoc()) {
-            $perfil_publicaciones[] = $fila;
+        if ($resultado_publicaciones) {
+            while ($fila = $resultado_publicaciones->fetch_assoc()) {
+                $perfil_publicaciones[] = $fila;
+            }
         }
     } else {
         $mensaje_error = "Perfil de usuario no encontrado.";
@@ -45,8 +61,9 @@ if ($tipo_perfil == 'usuario_normal') {
 
 } elseif ($tipo_perfil == 'club') {
     // Lógica para perfil de CLUB
-    $stmt = $conn->prepare("SELECT id_club, nombre_oficial, ciudad, logo_url, descripcion, membresia_abierta FROM clubes WHERE id_club = ?");
-    $stmt->bind_param("i", $id_perfil);
+    // Se añade c.id_usuario a la consulta para poder obtener las publicaciones del club correctamente
+    $stmt = $conn->prepare("SELECT c.id_club, c.id_usuario, c.nombre_oficial, c.ciudad, c.logo_url, c.descripcion, c.membresia_abierta FROM clubes c WHERE c.id_club = ?");
+    $stmt->bind_param("i", $id_perfil); // $id_perfil aquí es clubes.id_club
     $stmt->execute();
     $resultado = $stmt->get_result();
 
@@ -55,7 +72,7 @@ if ($tipo_perfil == 'usuario_normal') {
 
         // Obtener miembros del club (usando la nueva tabla)
         $stmt_miembros = $conn->prepare("SELECT u.nombre_usuario, u.foto_perfil_url, cm.es_jugador FROM clubes_miembros cm JOIN usuarios u ON cm.id_usuario = u.id_usuario WHERE cm.id_club = ? ORDER BY cm.fecha_union");
-        $stmt_miembros->bind_param("i", $id_perfil);
+        $stmt_miembros->bind_param("i", $perfil_data['id_club']); // Usar el id_club del perfil_data
         $stmt_miembros->execute();
         $resultado_miembros = $stmt_miembros->get_result();
         $miembros = [];
@@ -64,13 +81,31 @@ if ($tipo_perfil == 'usuario_normal') {
         }
         $perfil_data['miembros'] = $miembros;
         
-        // Obtener publicaciones del club
-        $stmt_publicaciones = $conn->prepare("SELECT * FROM publicaciones WHERE id_club = ? ORDER BY fecha_publicacion DESC");
-        $stmt_publicaciones->bind_param("i", $id_perfil);
-        $stmt_publicaciones->execute();
-        $resultado_publicaciones = $stmt_publicaciones->get_result();
-        while ($fila = $resultado_publicaciones->fetch_assoc()) {
-            $perfil_publicaciones[] = $fila;
+        // Obtener publicaciones del club usando el id_usuario del club
+        if (isset($perfil_data['id_usuario'])) {
+            $id_usuario_del_club = $perfil_data['id_usuario'];
+            $query_pub_club_perfil = "
+                SELECT p.*, u_pub.nombre_usuario AS autor_nombre_publicacion, u_pub.foto_perfil_url AS autor_foto_publicacion,
+                       (SELECT COUNT(*) FROM likes l WHERE l.id_publicacion = p.id_publicacion) AS total_likes,
+                       (SELECT COUNT(*) FROM comentarios com WHERE com.id_publicacion = p.id_publicacion) AS total_comentarios,
+                       EXISTS(SELECT 1 FROM likes l WHERE l.id_publicacion = p.id_publicacion AND l.id_usuario = ?) AS usuario_dio_like
+                FROM publicaciones p
+                JOIN usuarios u_pub ON p.id_usuario = u_pub.id_usuario
+                WHERE p.id_usuario = ? ORDER BY p.fecha_publicacion DESC";
+            $stmt_publicaciones_club = $conn->prepare($query_pub_club_perfil);
+            // Necesitamos pasar $id_usuario_logueado para 'usuario_dio_like' y $id_usuario_del_club para p.id_usuario
+            $stmt_publicaciones_club->bind_param("ii", $id_usuario_logueado, $id_usuario_del_club);
+            $stmt_publicaciones_club->execute();
+            $resultado_publicaciones = $stmt_publicaciones_club->get_result();
+            if ($resultado_publicaciones) {
+                while ($fila = $resultado_publicaciones->fetch_assoc()) {
+                    $perfil_publicaciones[] = $fila;
+                }
+            }
+            $stmt_publicaciones_club->close();
+        } else {
+             // Si no hay id_usuario en perfil_data, no se pueden cargar publicaciones
+            // $perfil_publicaciones ya está inicializado como array vacío.
         }
 
     } else {
@@ -198,8 +233,63 @@ if (!$perfil_data) {
             <div class="row">
                 <div class="col-md-8 offset-md-2">
                     <h4 class="fw-bold mb-4">Publicaciones de <?php echo htmlspecialchars($perfil_data['nombre_usuario'] ?? $perfil_data['nombre_oficial']); ?></h4>
+
                     <?php if (!empty($perfil_publicaciones)): ?>
-                        <div class="alert alert-success">¡Se encontraron <?php echo count($perfil_publicaciones); ?> publicaciones! El código para mostrarlas es similar al de dashboard.php.</div>
+                        <?php foreach ($perfil_publicaciones as $publicacion): ?>
+                            <div class="card post-card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="<?php echo htmlspecialchars($publicacion['autor_foto_publicacion'] ?: 'img/default-avatar.png'); ?>" alt="Avatar" class="post-profile-pic">
+                                        <div class="ms-3 flex-grow-1">
+                                            <h5 class="mb-0">
+                                                <?php echo htmlspecialchars($publicacion['autor_nombre_publicacion']); ?>
+                                            </h5>
+                                            <small class="text-muted"><i class="far fa-clock me-1"></i><?php echo date('d M Y H:i', strtotime($publicacion['fecha_publicacion'])); ?></small>
+                                        </div>
+                                        <?php if ($publicacion['id_usuario'] == $id_usuario_logueado && $es_mi_perfil): // Solo mostrar botón de eliminar en el perfil propio y si es el autor ?>
+                                            <a href="dashboard.php?delete_post=<?php echo htmlspecialchars($publicacion['id_publicacion']); ?>&redirect_url=<?php echo urlencode('perfil.php?id='.$id_perfil.'&tipo='.$tipo_perfil); ?>" class="btn btn-sm btn-outline-danger ms-auto" onclick="return confirm('¿Estás seguro de que quieres eliminar esta publicación?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p class="card-text"><?php echo nl2br(htmlspecialchars($publicacion['contenido_texto'])); ?></p>
+                                    <?php if (!empty($publicacion['url_imagen'])): ?>
+                                        <img src="<?php echo htmlspecialchars($publicacion['url_imagen']); ?>" class="img-fluid post-image" alt="Imagen de publicación">
+                                    <?php endif; ?>
+                                    <?php if (!empty($publicacion['url_video'])): ?>
+                                        <div class="embed-responsive embed-responsive-16by9 post-video">
+                                            <iframe class="embed-responsive-item" src="<?php echo htmlspecialchars($publicacion['url_video']); ?>" allowfullscreen></iframe>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <hr>
+                                    <div class="d-flex justify-content-around align-items-center">
+                                        <button class="btn btn-link text-decoration-none like-btn" data-post-id="<?php echo htmlspecialchars($publicacion['id_publicacion']); ?>" <?php echo $es_mi_perfil ? '' : 'disabled'; // Deshabilitar si no es mi perfil para simplificar, idealmente el JS manejaría esto mejor ?>>
+                                            <i class="fas fa-heart <?php echo $publicacion['usuario_dio_like'] ? 'text-danger' : ''; ?>"></i>
+                                            <span class="like-count"><?php echo htmlspecialchars($publicacion['total_likes']); ?></span> Me gusta
+                                        </button>
+                                        <button class="btn btn-link text-decoration-none text-muted comment-toggle-btn" data-bs-toggle="collapse" data-bs-target="#comments-perfil-<?php echo htmlspecialchars($publicacion['id_publicacion']); ?>" aria-expanded="false" aria-controls="comments-perfil-<?php echo htmlspecialchars($publicacion['id_publicacion']); ?>">
+                                            <i class="fas fa-comment"></i> <span class="comment-count"><?php echo htmlspecialchars($publicacion['total_comentarios']); ?></span> Comentarios
+                                        </button>
+                                    </div>
+
+                                    <div class="collapse mt-3" id="comments-perfil-<?php echo htmlspecialchars($publicacion['id_publicacion']); ?>">
+                                        <div class="comment-section">
+                                            <!-- Aquí se cargarían/mostrarían los comentarios. Para simplificar, no se incluye la lógica completa de comentarios aquí -->
+                                            <p class="text-muted text-center_">La sección de comentarios detallada se ve en el dashboard.</p>
+                                            <?php if ($publicacion['total_comentarios'] > 0): ?>
+                                                <div class="mt-2">
+                                                <!-- Se podría hacer un fetch AJAX para los comentarios o mostrar algunos -->
+                                                </div>
+                                            <?php else: ?>
+                                                 <p class="text-muted text-center">No hay comentarios aún.</p>
+                                            <?php endif; ?>
+                                            <!-- Formulario de comentario simplificado o enlace al post en dashboard -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     <?php else: ?>
                         <div class="alert alert-info text-center" role="alert">
                             No hay publicaciones en este perfil.
